@@ -1,0 +1,9 @@
+flask
+gunicorn
+google-cloud-firestore
+google-api-python-client
+openai==0.28.1
+line-bot-sdk
+tiktoken
+pytz
+requests
