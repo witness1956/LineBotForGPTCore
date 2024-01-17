@@ -291,7 +291,7 @@ def handle_message(event):
         def update_in_transaction(transaction, doc_ref):
             user_message = []
             exec_functions = False
-            quick_reply_items = []
+            quick_reply_item = []
             head_message = ""
             encoding: Encoding = tiktoken.encoding_for_model(GPT_MODEL)
             messages = []
@@ -395,8 +395,8 @@ def handle_message(event):
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
             bot_reply = bot_reply
 
-            if quick_reply_items:
-                line_reply_q(reply_token, bot_reply, 'text', quick_reply_items)
+            if quick_reply_item:
+                line_reply_q(reply_token, bot_reply, 'text', quick_reply_item)
             else
                 line_reply(reply_token, bot_reply, 'text')
             
