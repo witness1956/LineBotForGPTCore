@@ -381,37 +381,40 @@ def handle_message(event):
 
             messages = user['messages']
             try:
+                print("10")
                 response = requests.post(
                     'https://api.openai.com/v1/chat/completions',
                     headers={'Authorization': f'Bearer {openai_api_key}'},
                     json={'model': GPT_MODEL, 'messages': [systemRole()] + temp_messages_final},
                     timeout=50
                 )
+                print("11")
             except requests.exceptions.Timeout:
                 print("OpenAI API timed out")
                 line_reply(reply_token, ERROR_MESSAGE, 'text')
                 return 'OK'
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
-
+            print("12")
             response_json = response.json()
 
             if response.status_code != 200 or 'error' in response_json:
                 print(f"OpenAI error: {response_json.get('error', 'No response from API')}")
                 line_reply(reply_token, ERROR_MESSAGE, 'text')
                 return 'OK' 
+            print("13")
             bot_reply = response_json['choices'][0]['message']['content'].strip()
             bot_reply = response_filter(bot_reply, bot_name, display_name)
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
             bot_reply = bot_reply + links
-                         
+            print("14")             
             line_reply(reply_token, bot_reply, 'text')
             
             encrypted_messages = [{**msg, 'content': get_encrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]
-
+            print("15")
             user['daily_usage'] += 1
             user['updated_date_string'] = nowDate
             transaction.set(doc_ref, {**user, 'messages': encrypted_messages}, merge=True)
-            print("10")
+            print("16")
         return update_in_transaction(db.transaction(), doc_ref)
     except ResetMemoryException:
         return 'OK'
