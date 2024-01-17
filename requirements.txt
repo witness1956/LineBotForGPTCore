@@ -6,3 +6,4 @@ line-bot-sdk
 tiktoken
 pytz
 requests
+pycryptodome
