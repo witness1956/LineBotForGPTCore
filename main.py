@@ -260,7 +260,6 @@ def get_decrypted_message(enc_message, hashed_secret_key):
     
 @app.route("/", methods=["POST"])
 def callback():
-    print("1")
     # get X-Line-Signature header value
     signature = request.headers["X-Line-Signature"]
     # get request body as text
@@ -276,7 +275,6 @@ def callback():
 
 @handler.add(MessageEvent, message=(TextMessage, AudioMessage, LocationMessage, ImageMessage, StickerMessage))
 def handle_message(event):
-    print("2")
     reload_settings()
     try:
         user_id = event.source.user_id
@@ -289,10 +287,8 @@ def handle_message(event):
             
         db = firestore.Client()
         doc_ref = db.collection(u'users').document(user_id)
-        print("3")
         @firestore.transactional
         def update_in_transaction(transaction, doc_ref):
-            print("4")
             user_message = []
             exec_functions = False
             quick_reply_items = []
@@ -314,9 +310,7 @@ def handle_message(event):
                     user_message = STICKER_MESSAGE + "\n" + ', '.join(keywords)
                 
             doc = doc_ref.get(transaction=transaction)
-            print("5")
             if doc.exists:
-                print("6")
                 user = doc.to_dict()
                 user['messages'] = [{**msg, 'content': get_decrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]
                 updated_date_string = user['updated_date_string']
@@ -328,7 +322,6 @@ def handle_message(event):
                     daily_usage = 0
                     
             else:
-                print("7")
                 user = {
                     'messages': messages,
                     'updated_date_string': nowDate,
@@ -367,7 +360,6 @@ def handle_message(event):
                     user['messages'].append({'role': 'user', 'content': display_name + ":" + user_message})
                     transaction.set(doc_ref, {**user, 'messages': [{**msg, 'content': get_encrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]})
                     return 'OK'
-            print("8")
 
             temp_messages = nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message
             total_chars = len(encoding.encode(SYSTEM_PROMPT)) + len(encoding.encode(temp_messages)) + sum([len(encoding.encode(msg['content'])) for msg in user['messages']])
@@ -377,47 +369,36 @@ def handle_message(event):
 
             temp_messages_final = user['messages'].copy()
             temp_messages_final.append({'role': 'user', 'content': temp_messages}) 
-            print("9")
 
             messages = user['messages']
             try:
-                print("10")
                 response = requests.post(
                     'https://api.openai.com/v1/chat/completions',
                     headers={'Authorization': f'Bearer {openai_api_key}'},
                     json={'model': GPT_MODEL, 'messages': [systemRole()] + temp_messages_final},
                     timeout=50
                 )
-                print("11")
             except requests.exceptions.Timeout:
                 print("OpenAI API timed out")
                 line_reply(reply_token, ERROR_MESSAGE, 'text')
                 return 'OK'
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
-            print("12")
             response_json = response.json()
 
             if response.status_code != 200 or 'error' in response_json:
                 print(f"OpenAI error: {response_json.get('error', 'No response from API')}")
                 line_reply(reply_token, ERROR_MESSAGE, 'text')
                 return 'OK' 
-            print("13")
             bot_reply = response_json['choices'][0]['message']['content'].strip()
-            print("13a")
             bot_reply = response_filter(bot_reply, bot_name, display_name)
-            print("13b")
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
-            print("13c")
-            bot_reply = bot_reply
-            print("14")             
+            bot_reply = bot_reply        
             line_reply(reply_token, bot_reply, 'text')
             
             encrypted_messages = [{**msg, 'content': get_encrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]
-            print("15")
             user['daily_usage'] += 1
             user['updated_date_string'] = nowDate
             transaction.set(doc_ref, {**user, 'messages': encrypted_messages}, merge=True)
-            print("16")
         return update_in_transaction(db.transaction(), doc_ref)
     except ResetMemoryException:
         return 'OK'
