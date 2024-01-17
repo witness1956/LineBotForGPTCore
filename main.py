@@ -336,7 +336,7 @@ def handle_message(event):
                 return 'OK'
 
             if any(word in user_message for word in FORGET_KEYWORDS) and exec_functions == False:
-                quick_reply_item = QuickReplyButton(action=MessageAction(label="記憶を消去", text=FORGET_QUICK_REPLY))
+                quick_reply_item = QuickReplyButton(action=MessageAction(label=FORGET_QUICK_REPLY, text=FORGET_QUICK_REPLY))
                 quick_reply_item = QuickReply(items=[quick_reply_item])
                 head_message = head_message + FORGET_GUIDE_MESSAGE
             
