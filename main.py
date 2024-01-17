@@ -260,6 +260,7 @@ def get_decrypted_message(enc_message, hashed_secret_key):
     
 @app.route("/", methods=["POST"])
 def callback():
+    print("1")
     # get X-Line-Signature header value
     signature = request.headers["X-Line-Signature"]
     # get request body as text
@@ -275,6 +276,7 @@ def callback():
 
 @handler.add(MessageEvent, message=(TextMessage, AudioMessage, LocationMessage, ImageMessage, StickerMessage))
 def handle_message(event):
+    print("2")
     reload_settings()
     try:
         user_id = event.source.user_id
@@ -287,9 +289,10 @@ def handle_message(event):
             
         db = firestore.Client()
         doc_ref = db.collection(u'users').document(user_id)
-        
+        print("3")
         @firestore.transactional
         def update_in_transaction(transaction, doc_ref):
+            print("4")
             user_message = []
             exec_functions = False
             quick_reply_items = []
