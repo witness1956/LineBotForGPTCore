@@ -397,7 +397,7 @@ def handle_message(event):
 
             if quick_reply_item:
                 line_reply_q(reply_token, bot_reply, 'text', quick_reply_item)
-            else
+            else:
                 line_reply(reply_token, bot_reply, 'text')
             
             encrypted_messages = [{**msg, 'content': get_encrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]
