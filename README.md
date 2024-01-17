@@ -1,1 +1,1 @@
-# LineBotForGPTSimple
+# LineBotForGPTCore

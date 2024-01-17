@@ -287,12 +287,11 @@ def handle_message(event):
             
         db = firestore.Client()
         doc_ref = db.collection(u'users').document(user_id)
-        
         @firestore.transactional
         def update_in_transaction(transaction, doc_ref):
             user_message = []
             exec_functions = False
-            quick_reply_items = []
+            quick_reply_item = []
             head_message = ""
             encoding: Encoding = tiktoken.encoding_for_model(GPT_MODEL)
             messages = []
@@ -311,7 +310,6 @@ def handle_message(event):
                     user_message = STICKER_MESSAGE + "\n" + ', '.join(keywords)
                 
             doc = doc_ref.get(transaction=transaction)
-            
             if doc.exists:
                 user = doc.to_dict()
                 user['messages'] = [{**msg, 'content': get_decrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]
@@ -338,7 +336,8 @@ def handle_message(event):
                 return 'OK'
 
             if any(word in user_message for word in FORGET_KEYWORDS) and exec_functions == False:
-                quick_reply_items.append(['message', FORGET_QUICK_REPLY, FORGET_QUICK_REPLY])
+                quick_reply_item = QuickReplyButton(action=MessageAction(label=FORGET_QUICK_REPLY, text=FORGET_QUICK_REPLY))
+                quick_reply_item = QuickReply(items=[quick_reply_item])
                 head_message = head_message + FORGET_GUIDE_MESSAGE
             
             if any(word in user_message for word in NG_KEYWORDS):
@@ -385,7 +384,6 @@ def handle_message(event):
                 line_reply(reply_token, ERROR_MESSAGE, 'text')
                 return 'OK'
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
-
             response_json = response.json()
 
             if response.status_code != 200 or 'error' in response_json:
@@ -395,16 +393,17 @@ def handle_message(event):
             bot_reply = response_json['choices'][0]['message']['content'].strip()
             bot_reply = response_filter(bot_reply, bot_name, display_name)
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
-            bot_reply = bot_reply + links
-                         
-            line_reply(reply_token, bot_reply, 'text')
+            bot_reply = bot_reply
+
+            if quick_reply_item:
+                line_reply_q(reply_token, bot_reply, 'text', quick_reply_item)
+            else:
+                line_reply(reply_token, bot_reply, 'text')
             
             encrypted_messages = [{**msg, 'content': get_encrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]
-
             user['daily_usage'] += 1
             user['updated_date_string'] = nowDate
             transaction.set(doc_ref, {**user, 'messages': encrypted_messages}, merge=True)
-
         return update_in_transaction(db.transaction(), doc_ref)
     except ResetMemoryException:
         return 'OK'
@@ -433,6 +432,15 @@ def response_filter(response,bot_name,display_name):
     dot_pattern = r"^ "
     response = re.sub(dot_pattern, "", response).strip()
     return response     
+
+def line_reply_q(reply_token, response, send_message_type, quick_reply=None):
+    if send_message_type == 'text':
+        message = TextSendMessage(text=response, quick_reply=quick_reply)
+    else:
+        print(f"Unknown REPLY type: {send_message_type}")
+        return
+
+    line_bot_api.reply_message(reply_token, message)
     
 def line_reply(reply_token, response, send_message_type):
     if send_message_type == 'text':
