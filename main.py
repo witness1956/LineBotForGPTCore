@@ -403,9 +403,12 @@ def handle_message(event):
                 return 'OK' 
             print("13")
             bot_reply = response_json['choices'][0]['message']['content'].strip()
+            print("13a")
             bot_reply = response_filter(bot_reply, bot_name, display_name)
+            print("13b")
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
-            bot_reply = bot_reply + links
+            print("13c")
+            bot_reply = bot_reply
             print("14")             
             line_reply(reply_token, bot_reply, 'text')
             
