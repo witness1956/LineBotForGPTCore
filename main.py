@@ -314,8 +314,9 @@ def handle_message(event):
                     user_message = STICKER_MESSAGE + "\n" + ', '.join(keywords)
                 
             doc = doc_ref.get(transaction=transaction)
-            
+            print("5")
             if doc.exists:
+                print("6")
                 user = doc.to_dict()
                 user['messages'] = [{**msg, 'content': get_decrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]
                 updated_date_string = user['updated_date_string']
@@ -327,6 +328,7 @@ def handle_message(event):
                     daily_usage = 0
                     
             else:
+                print("7")
                 user = {
                     'messages': messages,
                     'updated_date_string': nowDate,
@@ -365,6 +367,7 @@ def handle_message(event):
                     user['messages'].append({'role': 'user', 'content': display_name + ":" + user_message})
                     transaction.set(doc_ref, {**user, 'messages': [{**msg, 'content': get_encrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]})
                     return 'OK'
+            print("8")
 
             temp_messages = nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message
             total_chars = len(encoding.encode(SYSTEM_PROMPT)) + len(encoding.encode(temp_messages)) + sum([len(encoding.encode(msg['content'])) for msg in user['messages']])
@@ -374,6 +377,7 @@ def handle_message(event):
 
             temp_messages_final = user['messages'].copy()
             temp_messages_final.append({'role': 'user', 'content': temp_messages}) 
+            print("9")
 
             messages = user['messages']
             try:
@@ -407,7 +411,7 @@ def handle_message(event):
             user['daily_usage'] += 1
             user['updated_date_string'] = nowDate
             transaction.set(doc_ref, {**user, 'messages': encrypted_messages}, merge=True)
-
+            print("10")
         return update_in_transaction(db.transaction(), doc_ref)
     except ResetMemoryException:
         return 'OK'
