@@ -322,6 +322,8 @@ def handle_message(event):
                 
                 if nowDate.date() != updated_date.date():
                     daily_usage = 0
+                else:
+                    daily_usage = daily_usage + 1
                     
             else:
                 user = {
@@ -403,7 +405,7 @@ def handle_message(event):
                 line_reply(reply_token, bot_reply, 'text')
             
             encrypted_messages = [{**msg, 'content': get_encrypted_message(msg['content'], hashed_secret_key)} for msg in user['messages']]
-            user['daily_usage'] += 1
+            user['daily_usage'] = daily_usage
             user['updated_date_string'] = nowDate
             transaction.set(doc_ref, {**user, 'messages': encrypted_messages}, merge=True)
         return update_in_transaction(db.transaction(), doc_ref)
