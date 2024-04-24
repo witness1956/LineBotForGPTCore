@@ -23,6 +23,7 @@ import base64
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 
+DATABASE_NAME = os.getenv('DATABASE_NAME', default='')
 openai_api_key = os.getenv('OPENAI_API_KEY')
 line_bot_api = LineBotApi(os.environ["CHANNEL_ACCESS_TOKEN"])
 handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
@@ -83,6 +84,7 @@ def reload_settings():
     global NG_MESSAGE, NG_KEYWORDS
     global STICKER_MESSAGE, STICKER_FAIL_MESSAGE
     global FORGET_KEYWORDS, FORGET_GUIDE_MESSAGE, FORGET_MESSAGE, ERROR_MESSAGE, FORGET_QUICK_REPLY
+    global DATABASE_NAME
 
     BOT_NAME = get_setting('BOT_NAME')
     if BOT_NAME:
