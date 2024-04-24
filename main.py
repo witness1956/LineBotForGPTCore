@@ -72,7 +72,7 @@ DEFAULT_ENV_VARS = {
 }
 
 try:
-    db = firestore.Client()
+    db = firestore.Client(database=DATABASE_NAME)
 except Exception as e:
     print(f"Error creating Firestore client: {e}")
     raise
@@ -285,7 +285,7 @@ def handle_message(event):
         message_id = event.message.id
         source_type = event.source.type
             
-        db = firestore.Client()
+        db = firestore.Client(database=DATABASE_NAME)
         doc_ref = db.collection(u'users').document(user_id)
         @firestore.transactional
         def update_in_transaction(transaction, doc_ref):
