@@ -18,7 +18,6 @@
 8. チャネルを作成し、webhookの宛先にCloud RunのサービスURLを指定します。
 
 ## 環境変数
--
 - OPENAI_API_KEY: OpenAI APIのAPIキー。ChatGPTとWhisperで使用する。
 - CHANNEL_ACCESS_TOKEN:LINEで発行したチャネルアクセストークンを設定してください。
 - CHANNEL_SECRET:LINEで発行したチャンネルシークレットキーを設定してください。
