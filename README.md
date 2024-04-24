@@ -18,10 +18,12 @@
 8. チャネルを作成し、webhookの宛先にCloud RunのサービスURLを指定します。
 
 ## 環境変数
-- OPENAI_APIKEY: OpenAI APIのAPIキー。ChatGPTとWhisperで使用する。
-- LINE_ACCESS_TOKEN: LINE Messaging APIのアクセストークン。
-- SECRET_KEY: DBに保存するメッセージの暗号化と復号化に使用される秘密鍵。
+- OPENAI_API_KEY: OpenAI APIのAPIキー。ChatGPTとWhisperで使用する。
+- CHANNEL_ACCESS_TOKEN:LINEで発行したチャネルアクセストークンを設定してください。
+- CHANNEL_SECRET:LINEで発行したチャンネルシークレットキーを設定してください。
 - ADMIN_PASSWORD: 管理者パスワード。
+- SECRET_KEY: DBに保存するメッセージの暗号化と復号化に使用される秘密鍵。
+- DATABASE_NAME:FireStoreのデータベース名を指定してください。
 
 ## 注意
 このアプリケーションはFlaskベースで作成されています。そのため、任意のウェブサーバー上にデプロイすることが可能ですが、前提としてはGoogle Cloud runでの動作を想定しています。デプロイ方法は使用するウェブサーバーによります。

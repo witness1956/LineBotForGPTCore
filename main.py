@@ -23,6 +23,7 @@ import base64
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 
+DATABASE_NAME = os.getenv('DATABASE_NAME', default='')
 openai_api_key = os.getenv('OPENAI_API_KEY')
 line_bot_api = LineBotApi(os.environ["CHANNEL_ACCESS_TOKEN"])
 handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
@@ -73,7 +74,7 @@ DEFAULT_ENV_VARS = {
 }
 
 try:
-    db = firestore.Client()
+    db = firestore.Client(database=DATABASE_NAME)
 except Exception as e:
     print(f"Error creating Firestore client: {e}")
     raise
@@ -84,6 +85,7 @@ def reload_settings():
     global NG_MESSAGE, NG_KEYWORDS
     global STICKER_MESSAGE, STICKER_FAIL_MESSAGE
     global FORGET_KEYWORDS, FORGET_GUIDE_MESSAGE, FORGET_MESSAGE, ERROR_MESSAGE, FORGET_QUICK_REPLY
+    global DATABASE_NAME
 
     BOT_NAME = get_setting('BOT_NAME')
     if BOT_NAME:
@@ -286,7 +288,7 @@ def handle_message(event):
         message_id = event.message.id
         source_type = event.source.type
             
-        db = firestore.Client()
+        db = firestore.Client(database=DATABASE_NAME)
         doc_ref = db.collection(u'users').document(user_id)
         @firestore.transactional
         def update_in_transaction(transaction, doc_ref):
