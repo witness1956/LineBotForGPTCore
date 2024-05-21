@@ -422,7 +422,7 @@ def handle_message(event):
         return 'OK'
     
 def response_filter(response,bot_name,display_name):
-    date_pattern = r"^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2} [A-Z]{3,4}"
+    date_pattern = r"\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2} [A-Z]{3,4}"
     response = re.sub(date_pattern, "", response).strip()
     name_pattern1 = r"^"+ bot_name + ":"
     response = re.sub(name_pattern1, "", response).strip()
