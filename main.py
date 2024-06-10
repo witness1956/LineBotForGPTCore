@@ -429,6 +429,8 @@ def response_filter(response, bot_name, display_name):
     response = re.sub(date_pattern1, "", response).strip()
     date_pattern2 = r"^\d{4}年.*JST"
     response = re.sub(date_pattern2, "", response).strip()
+    date_pattern3 = r"^\d{4}年.*\d{2}:\d{2}"
+    response = re.sub(date_pattern3, "", response).strip()
     name_pattern1 = r"^" + re.escape(bot_name) + r":"
     response = re.sub(name_pattern1, "", response).strip()
     name_pattern2 = r"^" + re.escape(bot_name) + r"："
