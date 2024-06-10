@@ -424,8 +424,10 @@ def handle_message(event):
         return 'OK'
     
 def response_filter(response,bot_name,display_name):
-    date_pattern = r"^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2} [A-Z]{3,4}"
-    response = re.sub(date_pattern, "", response).strip()
+    date_pattern1 = r"^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2} [A-Z]{3,4}"
+    response = re.sub(date_pattern1, "", response).strip()
+    date_pattern2 = r"^\d{4}年.*JST"
+    response = re.sub(date_pattern2, "", response).strip()
     name_pattern1 = r"^"+ bot_name + ":"
     response = re.sub(name_pattern1, "", response).strip()
     name_pattern2 = r"^"+ bot_name + "："
@@ -434,10 +436,10 @@ def response_filter(response,bot_name,display_name):
     response = re.sub(name_pattern3, "", response).strip()
     name_pattern4 = r"^"+ display_name + "："
     response = re.sub(name_pattern4, "", response).strip()
-    dot_pattern = r"^、"
-    response = re.sub(dot_pattern, "", response).strip()
-    dot_pattern = r"^ "
-    response = re.sub(dot_pattern, "", response).strip()
+    dot_pattern1 = r"^、"
+    response = re.sub(dot_pattern1, "", response).strip()
+    dot_pattern2 = r"^ "
+    response = re.sub(dot_pattern2, "", response).strip()
     return response     
 
 def line_reply_q(reply_token, response, send_message_type, quick_reply=None):
