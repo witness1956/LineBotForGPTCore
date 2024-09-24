@@ -55,7 +55,7 @@ REQUIRED_ENV_VARS = [
 DEFAULT_ENV_VARS = {
     'BOT_NAME': '秘書,secretary,秘书,เลขานุการ,sekretaris',
     'SYSTEM_PROMPT': 'あなたは有能な秘書です。',
-    'GPT_MODEL': 'gpt-3.5-turbo',
+    'GPT_MODEL': 'gpt-4o-mini',
     'MAX_TOKEN_NUM': '2000',
     'MAX_DAILY_USAGE': '1000',
     'GROUP_MAX_DAILY_USAGE': '1000',
