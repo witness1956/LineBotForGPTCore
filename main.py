@@ -306,6 +306,7 @@ def handle_message(event):
             daily_usage = 0
             start_free_day = datetime.now(jst)
             bot_name = BOT_NAME[0]
+            response = []
             
             if message_type == 'text':
                 user_message = event.message.text
@@ -381,24 +382,18 @@ def handle_message(event):
             temp_messages_final.append({'role': 'user', 'content': temp_messages}) 
 
             messages = user['messages']
+            
             try:
                 response = gpt_client.chat.completions.create(
                     model=GPT_MODEL,
                     messages=[systemRole()] + temp_messages_final,
                 )
-            except requests.exceptions.Timeout:
+            except Exception as e:
                 print("OpenAI API timed out")
                 line_reply(reply_token, ERROR_MESSAGE, 'text')
                 return 'OK'
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
-            response_json = response.json()
-
-            if response.status_code != 200 or 'error' in response_json:
-                print(f"OpenAI error: {response_json.get('error', 'No response from API')}")
-                line_reply(reply_token, ERROR_MESSAGE, 'text')
-                return 'OK' 
-            bot_reply = response_json['choices'][0]['message']['content'].strip()
-            bot_reply = response_filter(bot_reply, bot_name, display_name)
+            bot_reply = response_filter(response, bot_name, display_name)
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
             bot_reply = bot_reply
 
@@ -414,8 +409,6 @@ def handle_message(event):
         return update_in_transaction(db.transaction(), doc_ref)
     except ResetMemoryException:
         return 'OK'
-    except KeyError:
-        return 'Not a valid JSON', 200 
     except Exception as e:
         print(f"Error in lineBot: {e}")
         line_reply(reply_token, ERROR_MESSAGE + f": {e}", 'text')
