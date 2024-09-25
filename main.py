@@ -384,7 +384,7 @@ def handle_message(event):
             try:
                 response = gpt_client.chat.completions.create(
                     model=GPT_MODEL,
-                    messages=[systemRole()] + temp_messages_final},
+                    messages=[systemRole()] + temp_messages_final,
                 )
             except requests.exceptions.Timeout:
                 print("OpenAI API timed out")
