@@ -26,6 +26,7 @@ from Crypto.Hash import SHA256
 
 DATABASE_NAME = os.getenv('DATABASE_NAME', default='')
 openai_api_key = os.getenv('OPENAI_API_KEY')
+gpt_client = OpenAI(api_key=openai_api_key)
 line_bot_api = LineBotApi(os.environ["CHANNEL_ACCESS_TOKEN"])
 handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
 admin_password = os.environ["ADMIN_PASSWORD"]
@@ -381,11 +382,9 @@ def handle_message(event):
 
             messages = user['messages']
             try:
-                response = requests.post(
-                    'https://api.openai.com/v1/chat/completions',
-                    headers={'Authorization': f'Bearer {openai_api_key}'},
-                    json={'model': GPT_MODEL, 'messages': [systemRole()] + temp_messages_final},
-                    timeout=50
+                response = gpt_client.chat.completions.create(
+                    model=GPT_MODEL,
+                    messages=[systemRole()] + temp_messages_final},
                 )
             except requests.exceptions.Timeout:
                 print("OpenAI API timed out")
