@@ -287,8 +287,6 @@ def callback():
 @handler.add(MessageEvent, message=(TextMessage, AudioMessage, LocationMessage, ImageMessage, StickerMessage))
 def handle_message(event):
     reload_settings()
-    if DEBUG == 'True':
-        print(f"Debug: message={message}")
     
     try:
         user_id = event.source.user_id
