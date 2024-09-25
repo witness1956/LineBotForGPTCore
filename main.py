@@ -389,8 +389,8 @@ def handle_message(event):
                     messages=[systemRole()] + temp_messages_final,
                 )
             except Exception as e:
-                print("OpenAI API timed out")
-                line_reply(reply_token, ERROR_MESSAGE, 'text')
+                print(f"Error: {e}")
+                line_reply(reply_token, ERROR_MESSAGE + f": {e}", 'text')
                 return 'OK'
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
             bot_reply = response_filter(response, bot_name, display_name)
@@ -410,7 +410,7 @@ def handle_message(event):
     except ResetMemoryException:
         return 'OK'
     except Exception as e:
-        print(f"Error in lineBot: {e}")
+        print(f"Error: {e}")
         line_reply(reply_token, ERROR_MESSAGE + f": {e}", 'text')
         raise
     finally:
