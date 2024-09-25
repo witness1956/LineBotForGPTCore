@@ -404,7 +404,7 @@ def handle_message(event):
             if DEBUG == 'True':
                 print(f"Debug: user_messages={user['messages']}")
             
-            bot_reply = response_filter(response, bot_name, display_name)
+            bot_reply = response_filter(response.choices[0].message.content, bot_name, display_name)
 
             if DEBUG == 'True':
                 print(f"Debug: bot_reply={bot_reply}")
