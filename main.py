@@ -408,7 +408,7 @@ def handle_message(event):
     finally:
         return 'OK'
 
-def run_conversation(reply_token, messages)
+def run_conversation(reply_token, messages):
     try:
         response = gpt_client.chat.completions.create(
             model=GPT_MODEL,
