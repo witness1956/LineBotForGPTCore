@@ -306,7 +306,7 @@ def handle_message(event):
             daily_usage = 0
             start_free_day = datetime.now(jst)
             bot_name = BOT_NAME[0]
-            response = []
+            response = ""
             
             if message_type == 'text':
                 user_message = event.message.text
