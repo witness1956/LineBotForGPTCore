@@ -1,4 +1,5 @@
 import os
+from openai import OpenAI
 import pytz
 import requests
 from datetime import datetime, time, timedelta
@@ -25,6 +26,7 @@ from Crypto.Hash import SHA256
 
 DATABASE_NAME = os.getenv('DATABASE_NAME', default='')
 openai_api_key = os.getenv('OPENAI_API_KEY')
+gpt_client = OpenAI(api_key=openai_api_key)
 line_bot_api = LineBotApi(os.environ["CHANNEL_ACCESS_TOKEN"])
 handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
 admin_password = os.environ["ADMIN_PASSWORD"]
@@ -50,7 +52,8 @@ REQUIRED_ENV_VARS = [
     "FORGET_GUIDE_MESSAGE",
     "FORGET_MESSAGE",
     "FORGET_QUICK_REPLY",
-    "ERROR_MESSAGE"
+    "ERROR_MESSAGE",
+    "DEBUG"
 ]
 
 DEFAULT_ENV_VARS = {
@@ -70,7 +73,8 @@ DEFAULT_ENV_VARS = {
     'FORGET_GUIDE_MESSAGE': 'ユーザーからあなたの記憶の削除が命令されました。別れの挨拶をしてください。',
     'FORGET_MESSAGE': '記憶を消去しました。',
     'FORGET_QUICK_REPLY': '😱記憶を消去',
-    'ERROR_MESSAGE': 'システムエラーが発生しています。'
+    'ERROR_MESSAGE': 'システムエラーが発生しています。',
+    'DEBUG': 'False'
 }
 
 try:
@@ -86,6 +90,7 @@ def reload_settings():
     global STICKER_MESSAGE, STICKER_FAIL_MESSAGE
     global FORGET_KEYWORDS, FORGET_GUIDE_MESSAGE, FORGET_MESSAGE, ERROR_MESSAGE, FORGET_QUICK_REPLY
     global DATABASE_NAME
+    global DEBUG
 
     BOT_NAME = get_setting('BOT_NAME')
     if BOT_NAME:
@@ -117,6 +122,7 @@ def reload_settings():
     FORGET_QUICK_REPLY = get_setting('FORGET_QUICK_REPLY')
     ERROR_MESSAGE = get_setting('ERROR_MESSAGE')
     FREE_LIMIT_DAY = int(get_setting('FREE_LIMIT_DAY') or 0)
+    DEBUG = get_setting('DEBUG')
     
 def get_setting(key):
     doc_ref = db.collection(u'settings').document('app_settings')
@@ -159,7 +165,7 @@ def save_default_settings():
 def update_setting(key, value):
     doc_ref = db.collection(u'settings').document('app_settings')
     doc_ref.update({key: value})
-    
+
 reload_settings()
 
 app = Flask(__name__)
@@ -282,6 +288,7 @@ def callback():
 @handler.add(MessageEvent, message=(TextMessage, AudioMessage, LocationMessage, ImageMessage, StickerMessage))
 def handle_message(event):
     reload_settings()
+    
     try:
         user_id = event.source.user_id
         profile = get_profile(user_id)
@@ -290,6 +297,9 @@ def handle_message(event):
         message_type = event.message.type
         message_id = event.message.id
         source_type = event.source.type
+
+        if DEBUG == 'True':
+            print(f"Debug: user_id={user_id},profile={profile},display_name={display_name},reply_token={reply_token},message_type={message_type},message_id={message_id},source_type={source_type}")
             
         db = firestore.Client(database=DATABASE_NAME)
         doc_ref = db.collection(u'users').document(user_id)
@@ -305,6 +315,7 @@ def handle_message(event):
             daily_usage = 0
             start_free_day = datetime.now(jst)
             bot_name = BOT_NAME[0]
+            response = ""
             
             if message_type == 'text':
                 user_message = event.message.text
@@ -337,6 +348,8 @@ def handle_message(event):
                     'start_free_day': start_free_day,
                 }
                 transaction.set(doc_ref, user)
+            if DEBUG == 'True':
+                print(f"Debug: messages={messages},updated_date_string={updated_date_string},daily_usage={daily_usage},start_free_day={start_free_day}")
             if user_message.strip() == FORGET_QUICK_REPLY:
                 line_reply(reply_token, FORGET_MESSAGE, 'text')
                 user['messages'] = []
@@ -376,33 +389,30 @@ def handle_message(event):
                 user['messages'].pop(0)
                 total_chars = len(encoding.encode(SYSTEM_PROMPT)) + len(encoding.encode(temp_messages)) + sum([len(encoding.encode(msg['content'])) for msg in user['messages']])
 
-            temp_messages_final = user['messages'].copy()
+            temp_messages_final = [systemRole()] + user['messages'].copy()
             temp_messages_final.append({'role': 'user', 'content': temp_messages}) 
 
             messages = user['messages']
-            try:
-                response = requests.post(
-                    'https://api.openai.com/v1/chat/completions',
-                    headers={'Authorization': f'Bearer {openai_api_key}'},
-                    json={'model': GPT_MODEL, 'messages': [systemRole()] + temp_messages_final},
-                    timeout=50
-                )
-            except requests.exceptions.Timeout:
-                print("OpenAI API timed out")
-                line_reply(reply_token, ERROR_MESSAGE, 'text')
-                return 'OK'
+            if DEBUG == 'True':
+                print(f"Debug: temp_messages_final={temp_messages_final},messages={messages}")
+            
+            response = run_conversation(reply_token, temp_messages_final)
+            if DEBUG == 'True':
+                print(f"Debug: response={response}")
+
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
-            response_json = response.json()
 
-            if response.status_code != 200 or 'error' in response_json:
-                print(f"OpenAI error: {response_json.get('error', 'No response from API')}")
-                line_reply(reply_token, ERROR_MESSAGE, 'text')
-                return 'OK' 
-            bot_reply = response_json['choices'][0]['message']['content'].strip()
-            bot_reply = response_filter(bot_reply, bot_name, display_name)
+            if DEBUG == 'True':
+                print(f"Debug: user_messages={user['messages']}")
+            
+            bot_reply = response_filter(response.choices[0].message.content, bot_name, display_name)
+
+            if DEBUG == 'True':
+                print(f"Debug: bot_reply={bot_reply}")
+            
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
-            bot_reply = bot_reply
 
+            
             if quick_reply_item:
                 line_reply_q(reply_token, bot_reply, 'text', quick_reply_item)
             else:
@@ -415,13 +425,23 @@ def handle_message(event):
         return update_in_transaction(db.transaction(), doc_ref)
     except ResetMemoryException:
         return 'OK'
-    except KeyError:
-        return 'Not a valid JSON', 200 
     except Exception as e:
-        print(f"Error in lineBot: {e}")
+        print(f"Error: {e}")
         line_reply(reply_token, ERROR_MESSAGE + f": {e}", 'text')
         raise
     finally:
+        return 'OK'
+
+def run_conversation(reply_token, messages):
+    try:
+        response = gpt_client.chat.completions.create(
+            model=GPT_MODEL,
+            messages=messages,
+        )
+        return response
+    except Exception as e:
+        print(f"Error: {e}")
+        line_reply(reply_token, ERROR_MESSAGE + f": {e}", 'text')
         return 'OK'
 
 def response_filter(response, bot_name, display_name):
