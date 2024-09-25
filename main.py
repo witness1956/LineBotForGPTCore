@@ -51,7 +51,8 @@ REQUIRED_ENV_VARS = [
     "FORGET_GUIDE_MESSAGE",
     "FORGET_MESSAGE",
     "FORGET_QUICK_REPLY",
-    "ERROR_MESSAGE"
+    "ERROR_MESSAGE",
+    "DEBUG"
 ]
 
 DEFAULT_ENV_VARS = {
@@ -71,7 +72,8 @@ DEFAULT_ENV_VARS = {
     'FORGET_GUIDE_MESSAGE': 'ユーザーからあなたの記憶の削除が命令されました。別れの挨拶をしてください。',
     'FORGET_MESSAGE': '記憶を消去しました。',
     'FORGET_QUICK_REPLY': '😱記憶を消去',
-    'ERROR_MESSAGE': 'システムエラーが発生しています。'
+    'ERROR_MESSAGE': 'システムエラーが発生しています。',
+    'DEBUG': 'False'
 }
 
 try:
@@ -87,6 +89,7 @@ def reload_settings():
     global STICKER_MESSAGE, STICKER_FAIL_MESSAGE
     global FORGET_KEYWORDS, FORGET_GUIDE_MESSAGE, FORGET_MESSAGE, ERROR_MESSAGE, FORGET_QUICK_REPLY
     global DATABASE_NAME
+    global DEBUG
 
     BOT_NAME = get_setting('BOT_NAME')
     if BOT_NAME:
@@ -118,6 +121,7 @@ def reload_settings():
     FORGET_QUICK_REPLY = get_setting('FORGET_QUICK_REPLY')
     ERROR_MESSAGE = get_setting('ERROR_MESSAGE')
     FREE_LIMIT_DAY = int(get_setting('FREE_LIMIT_DAY') or 0)
+    DEBUG = get_setting('DEBUG')
     
 def get_setting(key):
     doc_ref = db.collection(u'settings').document('app_settings')
@@ -283,6 +287,9 @@ def callback():
 @handler.add(MessageEvent, message=(TextMessage, AudioMessage, LocationMessage, ImageMessage, StickerMessage))
 def handle_message(event):
     reload_settings()
+    if DEBUG == 'True'
+        print(f"Debug: message={message}")
+    
     try:
         user_id = event.source.user_id
         profile = get_profile(user_id)
@@ -291,6 +298,9 @@ def handle_message(event):
         message_type = event.message.type
         message_id = event.message.id
         source_type = event.source.type
+
+        if DEBUG == 'True'
+            print(f"Debug: user_id={user_id},profile={profile},display_name={display_name},reply_token={reply_token},message_type={message_type},message_id={message_id},source_type={source_type}")
             
         db = firestore.Client(database=DATABASE_NAME)
         doc_ref = db.collection(u'users').document(user_id)
@@ -339,6 +349,8 @@ def handle_message(event):
                     'start_free_day': start_free_day,
                 }
                 transaction.set(doc_ref, user)
+            if DEBUG == 'True'
+                print(f"Debug: messages={messages},updated_date_string={updated_date_string},daily_usage={daily_usage},start_free_day={start_free_day}")
             if user_message.strip() == FORGET_QUICK_REPLY:
                 line_reply(reply_token, FORGET_MESSAGE, 'text')
                 user['messages'] = []
@@ -382,13 +394,20 @@ def handle_message(event):
             temp_messages_final.append({'role': 'user', 'content': temp_messages}) 
 
             messages = user['messages']
-
+            if DEBUG == 'True'
+                print(f"Debug: temp_messages_final={temp_messages_final},messages={messages}")
+            
             response = run_conversation(reply_token, temp_messages_final)
+            if DEBUG == 'True'
+                print(f"Debug: response={response}")
 
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
             bot_reply = response_filter(response, bot_name, display_name)
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
 
+            if DEBUG == 'True'
+                print(f"Debug: reply_token={reply_token},bot_reply={bot_reply},quick_reply_item={quick_reply_item}")
+            
             if quick_reply_item:
                 line_reply_q(reply_token, bot_reply, 'text', quick_reply_item)
             else:
