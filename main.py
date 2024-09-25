@@ -378,7 +378,7 @@ def handle_message(event):
                 user['messages'].pop(0)
                 total_chars = len(encoding.encode(SYSTEM_PROMPT)) + len(encoding.encode(temp_messages)) + sum([len(encoding.encode(msg['content'])) for msg in user['messages']])
 
-            temp_messages_final = user['messages'].copy()
+            temp_messages_final = [systemRole()] + user['messages'].copy()
             temp_messages_final.append({'role': 'user', 'content': temp_messages}) 
 
             messages = user['messages']
@@ -386,7 +386,7 @@ def handle_message(event):
             try:
                 response = gpt_client.chat.completions.create(
                     model=GPT_MODEL,
-                    messages=[systemRole()] + temp_messages_final,
+                    messages=temp_messages_final,
                 )
             except Exception as e:
                 print(f"Error: {e}")
