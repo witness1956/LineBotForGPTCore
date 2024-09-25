@@ -17,7 +17,7 @@
 7. LINE Developerにログインします：https://account.line.biz/login
 8. チャネルを作成し、webhookの宛先にCloud RunのサービスURLを指定します。
 
-設置方法の詳細は以下のサイトを参照ください。
+設置方法の詳細は次のサイトを参照ください。
 https://note.com/modern_echium586/n/n03e932b5088e
 
 ## 環境変数
