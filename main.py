@@ -1,4 +1,5 @@
 import os
+from openai import OpenAI
 import pytz
 import requests
 from datetime import datetime, time, timedelta
