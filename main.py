@@ -287,7 +287,7 @@ def callback():
 @handler.add(MessageEvent, message=(TextMessage, AudioMessage, LocationMessage, ImageMessage, StickerMessage))
 def handle_message(event):
     reload_settings()
-    if DEBUG == 'True'
+    if DEBUG == 'True':
         print(f"Debug: message={message}")
     
     try:
@@ -299,7 +299,7 @@ def handle_message(event):
         message_id = event.message.id
         source_type = event.source.type
 
-        if DEBUG == 'True'
+        if DEBUG == 'True':
             print(f"Debug: user_id={user_id},profile={profile},display_name={display_name},reply_token={reply_token},message_type={message_type},message_id={message_id},source_type={source_type}")
             
         db = firestore.Client(database=DATABASE_NAME)
@@ -349,7 +349,7 @@ def handle_message(event):
                     'start_free_day': start_free_day,
                 }
                 transaction.set(doc_ref, user)
-            if DEBUG == 'True'
+            if DEBUG == 'True':
                 print(f"Debug: messages={messages},updated_date_string={updated_date_string},daily_usage={daily_usage},start_free_day={start_free_day}")
             if user_message.strip() == FORGET_QUICK_REPLY:
                 line_reply(reply_token, FORGET_MESSAGE, 'text')
@@ -394,18 +394,18 @@ def handle_message(event):
             temp_messages_final.append({'role': 'user', 'content': temp_messages}) 
 
             messages = user['messages']
-            if DEBUG == 'True'
+            if DEBUG == 'True':
                 print(f"Debug: temp_messages_final={temp_messages_final},messages={messages}")
             
             response = run_conversation(reply_token, temp_messages_final)
-            if DEBUG == 'True'
+            if DEBUG == 'True':
                 print(f"Debug: response={response}")
 
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
             bot_reply = response_filter(response, bot_name, display_name)
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
 
-            if DEBUG == 'True'
+            if DEBUG == 'True':
                 print(f"Debug: reply_token={reply_token},bot_reply={bot_reply},quick_reply_item={quick_reply_item}")
             
             if quick_reply_item:
