@@ -160,7 +160,7 @@ def save_default_settings():
 def update_setting(key, value):
     doc_ref = db.collection(u'settings').document('app_settings')
     doc_ref.update({key: value})
-    
+
 reload_settings()
 
 app = Flask(__name__)
@@ -382,16 +382,9 @@ def handle_message(event):
             temp_messages_final.append({'role': 'user', 'content': temp_messages}) 
 
             messages = user['messages']
-            
-            try:
-                response = gpt_client.chat.completions.create(
-                    model=GPT_MODEL,
-                    messages=temp_messages_final,
-                )
-            except Exception as e:
-                print(f"Error: {e}")
-                line_reply(reply_token, ERROR_MESSAGE + f": {e}", 'text')
-                return 'OK'
+
+            response = run_conversation(reply_token, temp_messages_final)
+
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
             bot_reply = response_filter(response, bot_name, display_name)
             user['messages'].append({'role': 'assistant', 'content': bot_reply})
@@ -413,6 +406,18 @@ def handle_message(event):
         line_reply(reply_token, ERROR_MESSAGE + f": {e}", 'text')
         raise
     finally:
+        return 'OK'
+
+def run_conversation(reply_token, messages)
+    try:
+        response = gpt_client.chat.completions.create(
+            model=GPT_MODEL,
+            messages=messages,
+        )
+        return response
+    except Exception as e:
+        print(f"Error: {e}")
+        line_reply(reply_token, ERROR_MESSAGE + f": {e}", 'text')
         return 'OK'
 
 def response_filter(response, bot_name, display_name):
