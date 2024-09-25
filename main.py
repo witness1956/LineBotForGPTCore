@@ -400,11 +400,17 @@ def handle_message(event):
                 print(f"Debug: response={response}")
 
             user['messages'].append({'role': 'user', 'content': nowDateStr + " " + head_message + "\n" + display_name + ":" + user_message})
-            bot_reply = response_filter(response, bot_name, display_name)
-            user['messages'].append({'role': 'assistant', 'content': bot_reply})
 
             if DEBUG == 'True':
-                print(f"Debug: reply_token={reply_token},bot_reply={bot_reply},quick_reply_item={quick_reply_item}")
+                print(f"Debug: user_messages={user['messages']}")
+            
+            bot_reply = response_filter(response, bot_name, display_name)
+
+            if DEBUG == 'True':
+                print(f"Debug: bot_reply={bot_reply}")
+            
+            user['messages'].append({'role': 'assistant', 'content': bot_reply})
+
             
             if quick_reply_item:
                 line_reply_q(reply_token, bot_reply, 'text', quick_reply_item)
