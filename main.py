@@ -17,6 +17,7 @@ from linebot.models import (
     QuickReply, QuickReplyButton, MessageAction, LocationAction, URIAction,
     LocationMessage, ImageMessage, StickerMessage,
 )
+from typing import Dict
 import linebot.v3.messaging
 from linebot.v3.messaging.models.show_loading_animation_request import ShowLoadingAnimationRequest
 
