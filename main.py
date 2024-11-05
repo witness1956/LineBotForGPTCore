@@ -17,6 +17,7 @@ from linebot.models import (
     QuickReply, QuickReplyButton, MessageAction, LocationAction, URIAction,
     LocationMessage, ImageMessage, StickerMessage,
 )
+from linebot.v3.messaging.models.show_loading_animation_request import ShowLoadingAnimationRequest
 import tiktoken
 import re
 from hashlib import md5
@@ -296,6 +297,7 @@ def handle_message(event):
         message_type = event.message.type
         message_id = event.message.id
         source_type = event.source.type
+        start_loading_animation(reply_token)
 
         if DEBUG == 'True':
             print(f"Debug: user_id={user_id},profile={profile},display_name={display_name},reply_token={reply_token},message_type={message_type},message_id={message_id},source_type={source_type}")
@@ -489,6 +491,18 @@ def line_reply(reply_token, response, send_message_type):
 def get_profile(user_id):
     profile = line_bot_api.get_profile(user_id)
     return profile
+
+# ローディングアニメーションを開始する関数
+def start_loading_animation(reply_token):
+    config = Configuration(access_token=os.environ["BEARER_TOKEN"])
+    with ApiClient(config) as api_client:
+        api_instance = MessagingApi(api_client)
+        try:
+            animation_request = ShowLoadingAnimationRequest()
+            api_instance.show_loading_animation(animation_request)
+            print("ローディングアニメーションを開始しました。")
+        except Exception as e:
+            print(f"ローディングアニメーションの開始中にエラー: {e}")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
