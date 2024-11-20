@@ -18,7 +18,7 @@ from linebot.models import (
     LocationMessage, ImageMessage, StickerMessage,
 )
 from typing import Dict
-import linebot.v3.messaging
+from linebot.v3.messaging import Configuration, ApiClient, MessagingApi
 from linebot.v3.messaging.models.show_loading_animation_request import ShowLoadingAnimationRequest
 
 import tiktoken
@@ -300,7 +300,7 @@ def handle_message(event):
         message_type = event.message.type
         message_id = event.message.id
         source_type = event.source.type
-        start_loading_animation(reply_token)
+        start_loading_animation(user_id)
 
         if DEBUG == 'True':
             print(f"Debug: user_id={user_id},profile={profile},display_name={display_name},reply_token={reply_token},message_type={message_type},message_id={message_id},source_type={source_type}")
@@ -496,12 +496,15 @@ def get_profile(user_id):
     return profile
 
 # ローディングアニメーションを開始する関数
-def start_loading_animation(reply_token):
-    config = Configuration(access_token=os.environ["BEARER_TOKEN"])
+def start_loading_animation(user_id, loading_seconds=40):
+    config = Configuration(access_token=os.environ["CHANNEL_ACCESS_TOKEN"])
     with ApiClient(config) as api_client:
         api_instance = MessagingApi(api_client)
         try:
-            animation_request = ShowLoadingAnimationRequest()
+            animation_request = ShowLoadingAnimationRequest(
+                chat_id=user_id,
+                loading_seconds=loading_seconds
+            )
             api_instance.show_loading_animation(animation_request)
             print("ローディングアニメーションを開始しました。")
         except Exception as e:
