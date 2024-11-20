@@ -496,7 +496,6 @@ def get_profile(user_id):
     profile = line_bot_api.get_profile(user_id)
     return profile
 
-# ローディングアニメーションを開始する関数
 def start_loading_animation(user_id, loading_seconds=40):
     config = Configuration(access_token=os.environ["CHANNEL_ACCESS_TOKEN"])
     with ApiClient(config) as api_client:
@@ -507,7 +506,6 @@ def start_loading_animation(user_id, loading_seconds=40):
                 loading_seconds=loading_seconds
             )
             api_instance.show_loading_animation(animation_request)
-            print("ローディングアニメーションを開始しました。")
         except Exception as e:
             print(f"ローディングアニメーションの開始中にエラー: {e}")
 
